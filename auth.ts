@@ -5,7 +5,7 @@ import UserModel from "./models/user.model"
 import bcrypt from "bcryptjs"
 import Google from "next-auth/providers/google"
 
-export const { signIn, signOut, auth } = NextAuth({
+export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [
     Credentials({
       credentials: {
@@ -38,17 +38,19 @@ export const { signIn, signOut, auth } = NextAuth({
     }),
   ],
   callbacks: {
-    async signIn({ user,account }) {
-      if(account?.provider === "google"){
+    async signIn({user,account}){
+      if(account?.provider=="google"){
         await connectDB()
-        let dbUser = await UserModel.findOne({email:user.email})
-        dbUser = await UserModel.create({
-          name:user.name,
-          email:user.email,
-          image:user.image,
-        })
-        dbUser.id = dbUser._id.toString()
-        dbUser.role = dbUser.role
+        let dbUser = await UserModel.findOne({email : user.email})
+        if(!dbUser){
+          dbUser = await UserModel.create({
+            name  : user.name,
+            email : user.email,
+            image : user.image
+          })
+          user.id   = dbUser._id.toString()
+          user.role = dbUser.role
+        }
       }
       return true
     },
