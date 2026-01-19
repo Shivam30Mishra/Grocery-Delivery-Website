@@ -64,10 +64,7 @@ export default function RegisterForm({ previousStep }: RegisterFormProps) {
         password,
       })
       console.log("Registered:", res.data)
-
-      // OPTIONAL:
-      // router.push("/login")
-
+      router.push("/login")
     } catch (err) {
       console.error("Registration failed")
     } finally {
@@ -279,7 +276,7 @@ export default function RegisterForm({ previousStep }: RegisterFormProps) {
             className="w-full py-3 rounded-xl border border-gray-300
                        bg-white text-gray-700 font-medium shadow-sm
                        hover:bg-gray-50 flex items-center justify-center gap-3"
-            onClick={()=>signIn("google")}
+            onClick={()=>signIn("google",{callbackUrl:"/"})}
           >
             <svg width="18" height="18" viewBox="0 0 48 48">
               <path fill="#EA4335" d="M24 9.5c3.54 0 6.36 1.53 8.3 3.23l6.17-6.17C34.41 2.66 29.64 0 24 0 14.64 0 6.6 5.4 2.74 13.3l7.19 5.59C11.6 13.06 17.3 9.5 24 9.5z"/>
