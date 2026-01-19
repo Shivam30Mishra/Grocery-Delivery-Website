@@ -1,89 +1,115 @@
 import NextAuth from "next-auth"
 import Credentials from "next-auth/providers/credentials"
-import connectDB from "./app/lib/db"
-import UserModel from "./models/user.model"
-import bcrypt from "bcryptjs"
 import Google from "next-auth/providers/google"
+import bcrypt from "bcryptjs"
+import UserModel from "@/models/user.model"
+import connectDB from "./app/lib/db"
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [
+    // ---------------- CREDENTIALS ----------------
     Credentials({
+      name: "Credentials",
       credentials: {
-        email: { label: "email", type: "email" },
+        email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" },
       },
-      async authorize(credentials, request) {
-        try {
-          await connectDB()
-          const email = credentials.email
-          const password = credentials.password as string
-          const user = await UserModel.findOne({ email })
-          if (!user) {
-            throw new Error("User not found")
-          }
-          const isMatch = await bcrypt.compare(password, user.password as string)
-          if (!isMatch) {
-            throw new Error("Invalid credentials")
-          }
-          return user
-        } catch (error) {
-          console.log(error)
+
+      async authorize(credentials) {
+        if (!credentials?.email || !credentials?.password) {
           return null
         }
-      }
+
+        await connectDB()
+
+        const user = await UserModel.findOne({ email: credentials.email })
+
+        if (!user || user.provider !== "credentials") {
+          return null
+        }
+
+        const isMatch = await bcrypt.compare(
+          credentials.password,
+          user.password as string
+        )
+
+        if (!isMatch) return null
+
+        // ✅ RETURN PLAIN OBJECT
+        return {
+          id: user._id.toString(), // Mongo _id ONLY
+          name: user.name,
+          email: user.email,
+          role: user.role,
+        }
+      },
     }),
+
+    // ---------------- GOOGLE ----------------
     Google({
-      clientId: process.env.GOOGLE_CLIENT_ID,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+      clientId: process.env.GOOGLE_CLIENT_ID!,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
     }),
   ],
+
   callbacks: {
-    async signIn({user,account}){
-      if(account?.provider=="google"){
+    async signIn({ user, account }) {
+      if (account?.provider === "google") {
         await connectDB()
-        let dbUser = await UserModel.findOne({email : user.email})
-        if(!dbUser){
-          dbUser = await UserModel.create({
-            name  : user.name,
-            email : user.email,
-            image : user.image
-          })
-          user.id   = dbUser._id.toString()
-          user.role = dbUser.role
+
+        let dbUser = await UserModel.findOne({ email: user.email })
+
+        // Block Google login for credentials users
+        if (dbUser && dbUser.provider === "credentials") {
+          return false
         }
+
+        if (!dbUser) {
+          dbUser = await UserModel.create({
+            name: user.name,
+            email: user.email,
+            image: user.image,
+            provider: "google",
+            role: "user",
+          })
+        }
+
+        // ✅ ALWAYS SET ID (IMPORTANT)
+        user.id = dbUser._id.toString()
+        user.role = dbUser.role
       }
+
       return true
     },
-    // pushes users data inside token
-    jwt({ token, user }) {
+
+    // ---------------- JWT ----------------
+    async jwt({ token, user }) {
       if (user) {
-        token.id = user.id
-        token.name = user.name
-        token.email = user.email
+        token.id = user.id // Mongo _id string
         token.role = user.role
       }
       return token
     },
-    // pushes users data inside session
-    session({ session, token }) {
-      if (token) {
-        if (session.user) {
-          session.user.id = token.id as string
-          session.user.name = token.name as string
-          session.user.email = token.email as string
-          session.user.role = token.role as string
-        }
+
+    // ---------------- SESSION ----------------
+    async session({ session, token }) {
+      if (session.user) {
+        session.user.id = token.id as string
+        session.user.role = token.role as string
       }
       return session
-    }
+    },
   },
+
   pages: {
-    signIn: "/auth/login",
-    error: "/auth/login",
+    signIn: "/login",
+    error: "/login",
   },
+
   session: {
     strategy: "jwt",
-    maxAge: 1000 * 60 * 60 * 24 * 10 // 10 days
+    maxAge: 60 * 60 * 24 * 10, // 10 days
   },
+
   secret: process.env.AUTH_SECRET,
 })
