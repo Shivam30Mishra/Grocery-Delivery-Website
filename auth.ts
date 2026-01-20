@@ -7,7 +7,7 @@ import connectDB from "./app/lib/db"
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [
-    // ---------------- CREDENTIALS ----------------
+    // ================= CREDENTIALS =================
     Credentials({
       name: "Credentials",
       credentials: {
@@ -22,12 +22,19 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
         await connectDB()
 
-        const user = await UserModel.findOne({ email: credentials.email })
+        const email = credentials.email.toLowerCase().trim()
 
-        if (!user || user.provider !== "credentials") {
+        const user = await UserModel.findOne({ email })
+
+        // User not found
+        if (!user) return null
+
+        // Block credentials login for Google-only users
+        if (user.provider && user.provider !== "credentials") {
           return null
         }
 
+        // Password check
         const isMatch = await bcrypt.compare(
           credentials.password,
           user.password as string
@@ -35,9 +42,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
         if (!isMatch) return null
 
-        // ✅ RETURN PLAIN OBJECT
+        // ✅ Return plain object ONLY
         return {
-          id: user._id.toString(), // Mongo _id ONLY
+          id: user._id.toString(),
           name: user.name,
           email: user.email,
           role: user.role,
@@ -45,7 +52,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       },
     }),
 
-    // ---------------- GOOGLE ----------------
+    // ================= GOOGLE =================
     Google({
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
@@ -53,28 +60,34 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   ],
 
   callbacks: {
+    // ================= SIGN IN =================
     async signIn({ user, account }) {
       if (account?.provider === "google") {
         await connectDB()
 
-        let dbUser = await UserModel.findOne({ email: user.email })
+        const email = user.email?.toLowerCase()
+
+        if (!email) return false
+
+        let dbUser = await UserModel.findOne({ email })
 
         // Block Google login for credentials users
         if (dbUser && dbUser.provider === "credentials") {
           return false
         }
 
+        // Create user if not exists
         if (!dbUser) {
           dbUser = await UserModel.create({
             name: user.name,
-            email: user.email,
+            email,
             image: user.image,
             provider: "google",
             role: "user",
           })
         }
 
-        // ✅ ALWAYS SET ID (IMPORTANT)
+        // Attach DB values to token
         user.id = dbUser._id.toString()
         user.role = dbUser.role
       }
@@ -82,16 +95,16 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       return true
     },
 
-    // ---------------- JWT ----------------
+    // ================= JWT =================
     async jwt({ token, user }) {
       if (user) {
-        token.id = user.id // Mongo _id string
+        token.id = user.id
         token.role = user.role
       }
       return token
     },
 
-    // ---------------- SESSION ----------------
+    // ================= SESSION =================
     async session({ session, token }) {
       if (session.user) {
         session.user.id = token.id as string
@@ -103,7 +116,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
   pages: {
     signIn: "/login",
-    error: "/login",
   },
 
   session: {
