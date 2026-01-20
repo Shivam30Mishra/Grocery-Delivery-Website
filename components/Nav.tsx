@@ -1,6 +1,7 @@
 "use client"
 
 import Link from "next/link"
+import Image from "next/image"
 import { useRouter } from "next/navigation"
 import { useEffect, useRef, useState } from "react"
 import { motion, AnimatePresence } from "motion/react"
@@ -20,37 +21,42 @@ interface IUser {
 
 export default function Nav({ user }: { user: IUser }) {
   const router = useRouter()
+
   const menuRef = useRef<HTMLDivElement | null>(null)
+  const lastScrollY = useRef(0)
 
   const [visible, setVisible] = useState(true)
-  const [lastScrollY, setLastScrollY] = useState(0)
   const [openMenu, setOpenMenu] = useState(false)
 
-  /* Scroll-aware hide/show */
+  /* ---------------- SCROLL AWARE HIDE / SHOW ---------------- */
   useEffect(() => {
     const handleScroll = () => {
       const currentY = window.scrollY
-      if (Math.abs(currentY - lastScrollY) < 12) return
+      if (Math.abs(currentY - lastScrollY.current) < 12) return
 
-      setVisible(currentY < lastScrollY)
-      setLastScrollY(currentY)
+      setVisible(currentY < lastScrollY.current)
+      lastScrollY.current = currentY
     }
 
     window.addEventListener("scroll", handleScroll)
     return () => window.removeEventListener("scroll", handleScroll)
-  }, [lastScrollY])
+  }, [])
 
-  /* Close dropdown on outside click */
+  /* ---------------- CLOSE DROPDOWN ON OUTSIDE CLICK ---------------- */
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+      if (
+        openMenu &&
+        menuRef.current &&
+        !menuRef.current.contains(e.target as Node)
+      ) {
         setOpenMenu(false)
       }
     }
 
     document.addEventListener("mousedown", handleClickOutside)
     return () => document.removeEventListener("mousedown", handleClickOutside)
-  }, [])
+  }, [openMenu])
 
   return (
     <motion.header
@@ -69,37 +75,18 @@ export default function Nav({ user }: { user: IUser }) {
         {/* LOGO */}
         <Link
           href="/"
-          className="
-            text-xl sm:text-2xl
-            font-semibold tracking-tight
-            text-gray-900
-            hover:opacity-80 transition
-          "
+          className="text-xl sm:text-2xl font-semibold tracking-tight text-gray-900"
         >
           UrbanGrocer
         </Link>
 
         {/* SEARCH (DESKTOP ONLY) */}
-        <div
-          className="
-            hidden md:flex items-center
-            w-80
-            bg-gray-100/70
-            border border-gray-200
-            rounded-full
-            px-4 py-2
-            focus-within:ring-2 focus-within:ring-gray-300
-          "
-        >
+        <div className="hidden md:flex items-center w-80 bg-gray-100/70 border border-gray-200 rounded-full px-4 py-2">
           <Search className="w-4 h-4 text-gray-400 mr-2" />
           <input
             type="text"
             placeholder="Search groceries"
-            className="
-              w-full bg-transparent
-              outline-none border-none
-              text-sm placeholder-gray-400
-            "
+            className="w-full bg-transparent outline-none text-sm"
           />
         </div>
 
@@ -110,11 +97,7 @@ export default function Nav({ user }: { user: IUser }) {
             type="button"
             onClick={() => router.push("/cart")}
             aria-label="Cart"
-            className="
-              p-2.5 rounded-full
-              bg-gray-100 hover:bg-gray-200
-              transition
-            "
+            className="p-2.5 rounded-full bg-gray-100 hover:bg-gray-200 transition"
           >
             <ShoppingCart className="w-5 h-5 text-gray-700" />
           </button>
@@ -125,18 +108,15 @@ export default function Nav({ user }: { user: IUser }) {
               type="button"
               onClick={() => setOpenMenu((prev) => !prev)}
               aria-label="Profile menu"
-              className="
-                flex items-center gap-2
-                px-2 py-1.5 rounded-full
-                bg-gray-100 hover:bg-gray-200
-                transition
-              "
+              className="flex items-center gap-2 px-2 py-1.5 rounded-full bg-gray-100 hover:bg-gray-200 transition"
             >
               {user.image ? (
-                <img
+                <Image
                   src={user.image}
                   alt={user.name}
-                  className="w-7 h-7 rounded-full object-cover"
+                  width={28}
+                  height={28}
+                  className="rounded-full object-cover"
                 />
               ) : (
                 <div className="w-7 h-7 rounded-full bg-gray-300 flex items-center justify-center">
@@ -153,34 +133,20 @@ export default function Nav({ user }: { user: IUser }) {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: 8 }}
                   transition={{ duration: 0.18, ease: "easeOut" }}
-                  className="
-                    absolute right-0 mt-3 w-56
-                    bg-white rounded-xl
-                    border border-gray-200
-                    shadow-lg
-                    overflow-hidden
-                  "
+                  className="absolute right-0 mt-3 w-56 bg-white rounded-xl border border-gray-200 shadow-lg overflow-hidden"
                 >
                   {/* USER INFO */}
                   <div className="px-4 py-3 border-b border-gray-100">
                     <p className="text-sm font-medium text-gray-900">
                       {user.name}
                     </p>
-                    <p className="text-xs text-gray-500">
-                      {user.role}
-                    </p>
+                    <p className="text-xs text-gray-500">{user.role}</p>
                   </div>
 
-                  {/* ACTIONS */}
+                  {/* LOGOUT */}
                   <button
                     onClick={() => signOut({ callbackUrl: "/login" })}
-                    className="
-                      w-full flex items-center gap-3
-                      px-4 py-3
-                      text-sm text-gray-700
-                      hover:bg-gray-50
-                      transition
-                    "
+                    className="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition"
                   >
                     <LogOut className="w-4 h-4 text-gray-500" />
                     Log out
