@@ -8,16 +8,12 @@ import { motion, AnimatePresence } from "motion/react"
 import { Search, ShoppingCart, User, LogOut } from "lucide-react"
 import { signOut } from "next-auth/react"
 
-/* ---------------- TYPES ---------------- */
-
 interface IUser {
   id: string
   name: string
   role: "user" | "deliveryBoy" | "admin"
   image?: string
 }
-
-/* ---------------- COMPONENT ---------------- */
 
 export default function Nav({ user }: { user: IUser }) {
   const router = useRouter()
@@ -28,7 +24,7 @@ export default function Nav({ user }: { user: IUser }) {
   const [visible, setVisible] = useState(true)
   const [openMenu, setOpenMenu] = useState(false)
 
-  /* ---------------- SCROLL AWARE HIDE / SHOW ---------------- */
+  /* ---------- SCROLL HIDE / SHOW ---------- */
   useEffect(() => {
     const handleScroll = () => {
       const currentY = window.scrollY
@@ -42,7 +38,7 @@ export default function Nav({ user }: { user: IUser }) {
     return () => window.removeEventListener("scroll", handleScroll)
   }, [])
 
-  /* ---------------- CLOSE DROPDOWN ON OUTSIDE CLICK ---------------- */
+  /* ---------- OUTSIDE CLICK ---------- */
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (
@@ -71,89 +67,97 @@ export default function Nav({ user }: { user: IUser }) {
         shadow-[0_6px_18px_rgba(0,0,0,0.06)]
       "
     >
-      <nav className="flex items-center justify-between px-4 sm:px-6 py-3">
-        {/* LOGO */}
-        <Link
-          href="/"
-          className="text-xl sm:text-2xl font-semibold tracking-tight text-gray-900"
-        >
-          UrbanGrocer
-        </Link>
-
-        {/* SEARCH (DESKTOP ONLY) */}
-        <div className="hidden md:flex items-center w-80 bg-gray-100/70 border border-gray-200 rounded-full px-4 py-2">
-          <Search className="w-4 h-4 text-gray-400 mr-2" />
-          <input
-            type="text"
-            placeholder="Search groceries"
-            className="w-full bg-transparent outline-none text-sm"
-          />
-        </div>
-
-        {/* ACTIONS */}
-        <div className="flex items-center gap-3 relative">
-          {/* CART */}
-          <button
-            type="button"
-            onClick={() => router.push("/cart")}
-            aria-label="Cart"
-            className="p-2.5 rounded-full bg-gray-100 hover:bg-gray-200 transition"
+      <nav className="px-4 sm:px-6 py-3 space-y-3">
+        {/* ===== TOP ROW ===== */}
+        <div className="flex items-center justify-between">
+          {/* LOGO */}
+          <Link
+            href="/"
+            className="text-xl sm:text-2xl font-semibold text-gray-900"
           >
-            <ShoppingCart className="w-5 h-5 text-gray-700" />
-          </button>
+            UrbanGrocer
+          </Link>
 
-          {/* PROFILE */}
-          <div ref={menuRef} className="relative">
+          {/* DESKTOP SEARCH (CENTERED) */}
+          <div className="hidden md:flex flex-1 justify-center px-6">
+            <div className="w-full max-w-xl flex items-center bg-gray-100/70 border border-gray-200 rounded-full px-4 py-2">
+              <Search className="w-4 h-4 text-gray-400 mr-2" />
+              <input
+                type="text"
+                placeholder="Search groceries"
+                className="w-full bg-transparent outline-none text-sm"
+              />
+            </div>
+          </div>
+
+          {/* ACTIONS */}
+          <div className="flex items-center gap-3">
+            {/* CART */}
             <button
-              type="button"
-              onClick={() => setOpenMenu((prev) => !prev)}
-              aria-label="Profile menu"
-              className="flex items-center gap-2 px-2 py-1.5 rounded-full bg-gray-100 hover:bg-gray-200 transition"
+              onClick={() => router.push("/cart")}
+              className="p-2.5 rounded-full bg-gray-100 hover:bg-gray-200 transition"
             >
-              {user.image ? (
-                <Image
-                  src={user.image}
-                  alt={user.name}
-                  width={28}
-                  height={28}
-                  className="rounded-full object-cover"
-                />
-              ) : (
-                <div className="w-7 h-7 rounded-full bg-gray-300 flex items-center justify-center">
-                  <User className="w-4 h-4 text-gray-600" />
-                </div>
-              )}
+              <ShoppingCart className="w-5 h-5 text-gray-700" />
             </button>
 
-            {/* DROPDOWN */}
-            <AnimatePresence>
-              {openMenu && (
-                <motion.div
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 8 }}
-                  transition={{ duration: 0.18, ease: "easeOut" }}
-                  className="absolute right-0 mt-3 w-56 bg-white rounded-xl border border-gray-200 shadow-lg overflow-hidden"
-                >
-                  {/* USER INFO */}
-                  <div className="px-4 py-3 border-b border-gray-100">
-                    <p className="text-sm font-medium text-gray-900">
-                      {user.name}
-                    </p>
-                    <p className="text-xs text-gray-500">{user.role}</p>
+            {/* PROFILE */}
+            <div ref={menuRef} className="relative">
+              <button
+                onClick={() => setOpenMenu((p) => !p)}
+                className="flex items-center px-2 py-1.5 rounded-full bg-gray-100 hover:bg-gray-200"
+              >
+                {user.image ? (
+                  <Image
+                    src={user.image}
+                    alt={user.name}
+                    width={28}
+                    height={28}
+                    className="rounded-full object-cover"
+                  />
+                ) : (
+                  <div className="w-7 h-7 rounded-full bg-gray-300 flex items-center justify-center">
+                    <User className="w-4 h-4 text-gray-600" />
                   </div>
+                )}
+              </button>
 
-                  {/* LOGOUT */}
-                  <button
-                    onClick={() => signOut({ callbackUrl: "/login" })}
-                    className="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition"
+              {/* DROPDOWN */}
+              <AnimatePresence>
+                {openMenu && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 8 }}
+                    className="absolute right-0 mt-3 w-56 bg-white rounded-xl border shadow-lg"
                   >
-                    <LogOut className="w-4 h-4 text-gray-500" />
-                    Log out
-                  </button>
-                </motion.div>
-              )}
-            </AnimatePresence>
+                    <div className="px-4 py-3 border-b">
+                      <p className="text-sm font-medium">{user.name}</p>
+                      <p className="text-xs text-gray-500">{user.role}</p>
+                    </div>
+
+                    <button
+                      onClick={() => signOut({ callbackUrl: "/login" })}
+                      className="w-full flex items-center gap-3 px-4 py-3 text-sm hover:bg-gray-50"
+                    >
+                      <LogOut className="w-4 h-4" />
+                      Log out
+                    </button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          </div>
+        </div>
+
+        {/* ===== MOBILE SEARCH ===== */}
+        <div className="md:hidden">
+          <div className="flex items-center bg-gray-100/70 border border-gray-200 rounded-full px-4 py-2">
+            <Search className="w-4 h-4 text-gray-400 mr-2" />
+            <input
+              type="text"
+              placeholder="Search groceries"
+              className="w-full bg-transparent outline-none text-sm"
+            />
           </div>
         </div>
       </nav>
