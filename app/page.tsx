@@ -1,28 +1,46 @@
-import UserModel from "@/models/user.model";
-import connectDB from "./lib/db";
-import { auth } from "@/auth";
-import { redirect } from "next/navigation";
-import EditRoleMobile from "@/components/EditRoleMobile";
-import Nav from "@/components/Nav";
-
+import UserModel from "@/models/user.model"
+import connectDB from "./lib/db"
+import { auth } from "@/auth"
+import { redirect } from "next/navigation"
+import EditRoleMobile from "@/components/EditRoleMobile"
+import Nav from "@/components/Nav"
+import UserDashboard from "@/components/UserDashboard"
+import AdminDashboard from "@/components/AdminDashboard"
+import DeliveryBoy from "@/components/DeliveryBoy"
 
 export default async function Home() {
-  await connectDB
+  await connectDB() // ✅ MUST CALL
+
   const session = await auth()
-  console.log("The Below is the session : ")
-  console.log(session)
-  const user = await UserModel.findById(session?.user?.id)
-  if(!user){
-    return redirect("/login")
+
+  if (!session?.user?.id) {
+    redirect("/login")
   }
-  const inComplete = !user.mobile || !user.role || (!user.mobile && user.role=="user")
-  if(inComplete){
-    return <EditRoleMobile/>
+
+  const userDoc = await UserModel.findById(session.user.id)
+
+  if (!userDoc) {
+    redirect("/login")
   }
+  const user = {
+    id: userDoc._id.toString(),
+    name: userDoc.name,
+    role: userDoc.role,
+    image: userDoc.image ?? null,
+    mobile: userDoc.mobile ?? null,
+  }
+  const inComplete = user.role === "user" && !user.mobile
+
+  if (inComplete) {
+    return <EditRoleMobile />
+  }
+
   return (
     <div>
-      The home page
-      <Nav user={user}/>
+      <Nav user={user} />
+      {user.role === "user" && <UserDashboard />}
+      {user.role === "admin" && <AdminDashboard />}
+      {user.role === "deliveryBoy" && <DeliveryBoy />}
     </div>
-  );
+  )
 }
