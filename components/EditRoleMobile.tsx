@@ -2,7 +2,7 @@
 
 import { Bike, User, UserCog, Check } from "lucide-react"
 import { motion } from "motion/react"
-import { redirect } from "next/navigation"
+import { useRouter } from "next/navigation"
 import { useState } from "react"
 
 const ROLES = [
@@ -11,7 +11,7 @@ const ROLES = [
   { id: "deliveryBoy", label: "Delivery Partner", icon: Bike },
 ]
 
-// 🔹 Parent stagger controller
+// Parent stagger controller
 const container = {
   hidden: { opacity: 0 },
   show: {
@@ -23,7 +23,7 @@ const container = {
   },
 }
 
-// 🔹 Child animation (top → bottom)
+// Child animation
 const item = {
   hidden: { opacity: 0, y: -20 },
   show: {
@@ -34,27 +34,41 @@ const item = {
 }
 
 export default function EditRoleMobile() {
+  const router = useRouter()
+
   const [selectedRole, setSelectedRole] = useState<string | null>(null)
   const [mobile, setMobile] = useState("")
+  const [loading, setLoading] = useState(false)
 
   const handleSubmit = async () => {
-    try{
-      const res = await fetch("/api/user/edit-role-mobile",{
-        method : "POST",
-        headers : {
-          "Content-Type" : "application/json"
+    if (!selectedRole || !mobile) return
+
+    try {
+      setLoading(true)
+
+      const res = await fetch("/api/user/edit-role-mobile", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
         },
-        body : JSON.stringify({
-          role : selectedRole,
-          mobile
-        })
+        body: JSON.stringify({
+          role: selectedRole,
+          mobile,
+        }),
       })
-      const data = await res.json()
-      console.log(data)
-      redirect("/")
-    }catch(error){
-      console.log(error)
-      console.log("Something went wrong")
+
+      if (!res.ok) {
+        console.error("Failed to update role/mobile")
+        setLoading(false)
+        return
+      }
+
+      // ✅ CLIENT-SIDE REDIRECT (CORRECT)
+      router.push("/")
+    } catch (error) {
+      console.error(error)
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -62,7 +76,6 @@ export default function EditRoleMobile() {
     <div className="min-h-screen flex items-center justify-center px-4
       bg-gradient-to-br from-[#0F2A32] via-[#123B45] to-[#F4F7F8]"
     >
-      {/* MAIN CARD */}
       <motion.div
         variants={container}
         initial="hidden"
@@ -79,7 +92,7 @@ export default function EditRoleMobile() {
           </p>
         </motion.div>
 
-        {/* ROLE SELECTION */}
+        {/* ROLES */}
         <motion.div
           variants={container}
           className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-10"
@@ -138,12 +151,9 @@ export default function EditRoleMobile() {
             placeholder="Enter your mobile number"
             value={mobile}
             onChange={(e) => setMobile(e.target.value)}
-            className="
-              w-full px-4 py-3 rounded-lg border border-gray-300
+            className="w-full px-4 py-3 rounded-lg border border-gray-300
               focus:outline-none focus:ring-4 focus:ring-[#0F2A32]/10
-              focus:border-[#0F2A32]
-              transition
-            "
+              focus:border-[#0F2A32] transition"
           />
         </motion.div>
 
@@ -152,27 +162,14 @@ export default function EditRoleMobile() {
           <motion.button
             whileHover={{ scale: 1.03 }}
             whileTap={{ scale: 0.97 }}
-            disabled={!selectedRole || !mobile}
-            className="
-              px-10 py-3 rounded-full
-              bg-[#0F2A32] text-white font-medium
-              shadow-md
-              disabled:opacity-40 disabled:cursor-not-allowed
-            "
+            disabled={!selectedRole || !mobile || loading}
+            className="px-10 py-3 rounded-full bg-[#0F2A32]
+              text-white font-medium shadow-md
+              disabled:opacity-40 disabled:cursor-not-allowed"
             onClick={handleSubmit}
           >
-            Continue
+            {loading ? "Saving..." : "Continue"}
           </motion.button>
-        </motion.div>
-
-        {/* STEP DOTS */}
-        <motion.div
-          variants={item}
-          className="flex justify-center gap-2 mt-8"
-        >
-          <span className="w-2 h-2 rounded-full bg-gray-300" />
-          <span className="w-2 h-2 rounded-full bg-[#0F2A32]" />
-          <span className="w-2 h-2 rounded-full bg-gray-300" />
         </motion.div>
       </motion.div>
     </div>
