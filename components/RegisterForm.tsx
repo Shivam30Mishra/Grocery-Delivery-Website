@@ -55,7 +55,6 @@ export default function RegisterForm({ previousStep }: RegisterFormProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!validate()) return
-
     setLoading(true)
     try {
       const res = await axios.post("/api/auth/register", {
