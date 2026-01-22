@@ -16,6 +16,16 @@ export async function proxy(req : NextRequest, res : NextResponse){
     loginURL.searchParams.set("callbackUrl",req.url)// redirects to page where we want to go after login
     return NextResponse.redirect(loginURL)
   }
+  const role = token.role
+  if(pathname.startsWith("/user") && role!=="user"){
+    return NextResponse.redirect(new URL ("/unauthorized",req.url))
+  }
+  if(pathname.startsWith("/admin") && role!=="admin"){
+    return NextResponse.redirect(new URL ("/unauthorized",req.url))
+  }
+  if(pathname.startsWith("/delivery") && role!=="delivery"){
+    return NextResponse.redirect(new URL ("/unauthorized",req.url))
+  }
   return NextResponse.next()
 
 }
