@@ -20,6 +20,7 @@ export async function POST(req:NextRequest,res:NextResponse){
     return NextResponse.json({
       user,
       message : "User updated successfully",
+      refreshSession : true,
       status : 200
     })
 
@@ -27,7 +28,7 @@ export async function POST(req:NextRequest,res:NextResponse){
   }catch(error){
     console.log(error)
     return NextResponse.json({
-      message : "Edit role and mobile failed errro",
+      message : "Edit role and mobile failed errror",
       status : 500,
       error
     })
