@@ -97,12 +97,23 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
     // ================= JWT =================
     async jwt({ token, user }) {
-      if (user) {
-        token.id = user.id
-        token.role = user.role
-      }
-      return token
-    },
+  // On initial login
+  if (user) {
+    token.id = user.id
+    token.role = user.role
+  }
+  // On subsequent requests → re-sync role from DB
+  else if (token?.id) {
+    await connectDB()
+    const dbUser = await UserModel.findById(token.id)
+    if (dbUser) {
+      token.role = dbUser.role
+    }
+  }
+  return token
+}
+
+,
 
     // ================= SESSION =================
     async session({ session, token }) {
