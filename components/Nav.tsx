@@ -18,6 +18,8 @@ import {
   X,
 } from "lucide-react"
 import { signOut } from "next-auth/react"
+import { RootState } from "@/redux/store"
+import { useSelector } from "react-redux"
 
 /* ================= TYPES ================= */
 
@@ -34,6 +36,7 @@ export default function Nav({ user }: { user: IUser }) {
   const router = useRouter()
   const profileRef = useRef<HTMLDivElement | null>(null)
   const lastScrollY = useRef(0)
+  const { cartData } = useSelector((state: RootState) => state.cart)
 
   const [visible, setVisible] = useState(true)
   const [profileOpen, setProfileOpen] = useState(false)
@@ -111,13 +114,44 @@ export default function Nav({ user }: { user: IUser }) {
             )}
 
             {user.role === "user" && (
-              <button
-                onClick={() => router.push("/cart")}
-                className="h-9 w-9 rounded-full bg-gray-100 flex items-center justify-center"
-              >
-                <ShoppingCart className="w-5 h-5" />
-              </button>
-            )}
+  <button
+    onClick={() => router.push("/user/cart")}
+    className="
+      relative
+      h-10 w-10
+      rounded-full
+      bg-green-600
+      flex items-center justify-center
+      text-white
+      shadow-md
+      hover:scale-105
+      transition
+    "
+  >
+    <ShoppingCart className="w-5 h-5" />
+
+    {cartData.length > 0 && (
+      <span
+        className="
+          absolute
+          -top-1.5 -right-1.5
+          min-w-[18px] h-[18px]
+          px-1
+          rounded-full
+          bg-red-600
+          text-white
+          text-[11px]
+          font-semibold
+          flex items-center justify-center
+          leading-none
+          ring-2 ring-white
+        "
+      >
+        {cartData.length}
+      </span>
+    )}
+  </button>
+)}
 
             <div ref={profileRef} className="relative">
               <button
