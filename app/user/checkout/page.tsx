@@ -213,6 +213,7 @@ export default function CheckoutPage() {
       })
 
       console.log(result.data)
+      router.push("/user/order-success")
       // router.push("/user/orders")
     } catch (err) {
       console.error(err)
