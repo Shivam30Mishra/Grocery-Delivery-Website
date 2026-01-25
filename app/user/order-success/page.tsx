@@ -90,7 +90,7 @@ export default function OrderSuccessPage() {
         >
           {/* PRIMARY CTA */}
           <Link
-            href="/user/orders"
+            href="/user/my-orders"
             className="
               block w-full
               py-3 rounded-full
