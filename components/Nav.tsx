@@ -100,7 +100,7 @@ export default function Nav({ user }: { user: IUser }) {
               <div className="hidden md:flex items-center gap-2">
                 <NavAction href="/admin/add-grocery" icon={<PlusCircle />} label="Add" />
                 <NavAction href="/admin/groceries" icon={<Boxes />} label="Groceries" />
-                <NavAction href="/admin/orders" icon={<ListOrdered />} label="Orders" />
+                <NavAction href="/admin/manage-orders" icon={<ListOrdered />} label="Orders" />
               </div>
             )}
 
@@ -114,9 +114,9 @@ export default function Nav({ user }: { user: IUser }) {
             )}
 
             {user.role === "user" && (
-  <button
-    onClick={() => router.push("/user/cart")}
-    className="
+              <button
+                onClick={() => router.push("/user/cart")}
+                className="
       relative
       h-10 w-10
       rounded-full
@@ -127,12 +127,12 @@ export default function Nav({ user }: { user: IUser }) {
       hover:scale-105
       transition
     "
-  >
-    <ShoppingCart className="w-5 h-5" />
+              >
+                <ShoppingCart className="w-5 h-5" />
 
-    {cartData.length > 0 && (
-      <span
-        className="
+                {cartData.length > 0 && (
+                  <span
+                    className="
           absolute
           -top-1.5 -right-1.5
           min-w-[18px] h-[18px]
@@ -146,12 +146,12 @@ export default function Nav({ user }: { user: IUser }) {
           leading-none
           ring-2 ring-white
         "
-      >
-        {cartData.length}
-      </span>
-    )}
-  </button>
-)}
+                  >
+                    {cartData.length}
+                  </span>
+                )}
+              </button>
+            )}
 
             <div ref={profileRef} className="relative">
               <button
@@ -244,7 +244,7 @@ export default function Nav({ user }: { user: IUser }) {
                     <nav className="px-4 space-y-2">
                       <SidebarItem href="/admin/add-grocery" icon={<PlusCircle />} label="Add Grocery" />
                       <SidebarItem href="/admin/groceries" icon={<Boxes />} label="View Grocery" />
-                      <SidebarItem href="/admin/orders" icon={<ListOrdered />} label="Manage Orders" />
+                      <SidebarItem href="/admin/manage-orders" icon={<ListOrdered />} label="Manage Orders" />
                     </nav>
                   </div>
 
