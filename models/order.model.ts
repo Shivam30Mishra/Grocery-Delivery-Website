@@ -1,8 +1,9 @@
 import mongoose from "mongoose";
 
-interface IOrder {
+export interface IOrder {
   _id ?: mongoose.Types.ObjectId,
   user : mongoose.Types.ObjectId,
+  assignment ?: mongoose.Types.ObjectId,
   items: [
     {
       grocery : mongoose.Types.ObjectId,
@@ -13,21 +14,23 @@ interface IOrder {
       quantity: number,
     }
   ],
-  totalAmount   : number,
-  paymentMethod : "cod" | "online",
-  address       : {
-    fullName    : string,
-    mobile      : string,
-    fullAddress : string,
-    city        : string,
-    state       : string,
-    pincode     : string,
-    latitude    : number,
-    longitude   : number,
+  assignedDeliveryBoy ?: mongoose.Types.ObjectId | null,
+  totalAmount         : number,
+  paymentMethod       : "cod" | "online",
+  isPaid              : boolean,
+  address             : {
+    fullName          : string,
+    mobile            : string,
+    fullAddress       : string,
+    city              : string,
+    state             : string,
+    pincode           : string,
+    latitude          : number,
+    longitude         : number,
   },
-  status : "pending" | "out of delivery" | "delivered",
-  createdAt ?: Date,
-  updatedAt ?: Date,
+  status            : "pending" | "out of delivery" | "delivered",
+  createdAt         ?: Date,
+  updatedAt         ?: Date,
 }
 
 const OrderSchema = new mongoose.Schema<IOrder>({
@@ -36,11 +39,16 @@ const OrderSchema = new mongoose.Schema<IOrder>({
     ref      : "User",
     required : true
   },
+  assignment : { 
+    type     : mongoose.Schema.Types.ObjectId,
+    ref      : "DeliveryAssignmentModel",
+    default  : null
+  },
   items : [
     {
       grocery : {
         type     : mongoose.Schema.Types.ObjectId,
-        ref      : "Grocery",
+        ref      : "User",
         required : true
       },
       name    : String,
@@ -50,6 +58,16 @@ const OrderSchema = new mongoose.Schema<IOrder>({
       quantity: Number,
     }
   ],
+  assignedDeliveryBoy : {
+    type     : mongoose.Schema.Types.ObjectId,
+    ref      : "User",
+    default  : null
+  },
+  isPaid        : {
+    type     : Boolean,
+    default  : false,
+    required : true
+  },
   paymentMethod : {
     type     : String,
     enum     : ["cod", "online"],
