@@ -27,6 +27,7 @@ export async function POST(req: NextRequest) {
   try {
     /* ---------- AUTH ---------- */
     const session = await auth()
+    console.log(session)
 
     if (!session || session.user?.role !== "admin") {
       return NextResponse.json(
