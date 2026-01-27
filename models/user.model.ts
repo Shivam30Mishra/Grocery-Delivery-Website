@@ -8,6 +8,17 @@ interface IUser {
   mobile   : string;
   image    : string;
   role     : "user" | "deliveryBoy" | "admin";
+   location: {
+    type: {
+        type: StringConstructor;
+        enum: string[];
+        default: string;
+    };
+    coordinates: {
+        type: NumberConstructor[];
+        default: number[];
+    };
+   }
 }
 
 const userSchema = new mongoose.Schema<IUser>({
@@ -16,8 +27,19 @@ const userSchema = new mongoose.Schema<IUser>({
   password : { type : String, required : false },
   mobile   : { type : String, required : false },
   role     : { type : String, enum : ["user", "deliveryBoy", "admin"], default : "user" },
-  image    : { type : String }
-},{ timestamps : true }) // createdAt and updatedAt
+  image    : { type : String },
+  location : {
+      type : {
+        type    : String,
+        enum    : ["Point"],
+        default : "Point"
+      },
+      coordinates : {
+        type    : [Number], // latitude and longitude
+        default : [0,0]
+      }
+  }
+},{ timestamps : true }) // createdAt and updatedAt 
 
 const UserModel = mongoose.models.User || mongoose.model<IUser>("User", userSchema)
 
