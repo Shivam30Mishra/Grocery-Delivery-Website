@@ -4,6 +4,7 @@ import { Bike, User, UserCog, Check } from "lucide-react"
 import { motion } from "motion/react"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
+import { useSession } from "next-auth/react"
 
 const ROLES = [
   { id: "admin", label: "Admin", icon: UserCog },
@@ -35,6 +36,7 @@ const item = {
 
 export default function EditRoleMobile() {
   const router = useRouter()
+  const { update } = useSession() // 🔥 IMPORTANT
 
   const [selectedRole, setSelectedRole] = useState<string | null>(null)
   const [mobile, setMobile] = useState("")
@@ -59,11 +61,14 @@ export default function EditRoleMobile() {
 
       if (!res.ok) {
         console.error("Failed to update role/mobile")
-        setLoading(false)
         return
       }
 
-      // ✅ CLIENT-SIDE REDIRECT (CORRECT)
+      // ✅ FORCE SESSION + JWT REFRESH (THIS FIXES YOUR ISSUE)
+      await update({
+        role: selectedRole,
+      })
+
       router.push("/")
     } catch (error) {
       console.error(error)
@@ -73,7 +78,8 @@ export default function EditRoleMobile() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4
+    <div
+      className="min-h-screen flex items-center justify-center px-4
       bg-gradient-to-br from-[#0F2A32] via-[#123B45] to-[#F4F7F8]"
     >
       <motion.div
@@ -119,7 +125,8 @@ export default function EditRoleMobile() {
                 `}
               >
                 {isSelected && (
-                  <div className="absolute top-3 right-3 w-6 h-6 rounded-full
+                  <div
+                    className="absolute top-3 right-3 w-6 h-6 rounded-full
                     bg-[#0F2A32] flex items-center justify-center"
                   >
                     <Check size={14} className="text-white" />
