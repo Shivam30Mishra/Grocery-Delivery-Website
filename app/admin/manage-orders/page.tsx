@@ -1,17 +1,62 @@
 "use client"
 
-import { IOrder } from "@/models/order.model"
 import axios from "axios"
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import AdminOrderCard from "@/components/AdminOrderCard"
 import { ArrowLeft } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
+import { getSocket } from "@/app/lib/socket"
+import mongoose from "mongoose"
+import { IUser } from "@/models/user.model"
+
+interface IOrder {
+  _id ?: mongoose.Types.ObjectId,
+  user : mongoose.Types.ObjectId,
+  assignment ?: mongoose.Types.ObjectId,
+  items: [
+    {
+      grocery : mongoose.Types.ObjectId,
+      name    : string,
+      price   : string,
+      unit    : string,
+      image   : string, 
+      quantity: number,
+    }
+  ],
+  assignedDeliveryBoy ?: IUser,
+  totalAmount         : number,
+  paymentMethod       : "cod" | "online",
+  isPaid              : boolean,
+  address             : {
+    fullName          : string,
+    mobile            : string,
+    fullAddress       : string,
+    city              : string,
+    state             : string,
+    pincode           : string,
+    latitude          : number,
+    longitude         : number,
+  },
+  status            : "pending" | "out of delivery" | "delivered",
+  createdAt         ?: Date,
+  updatedAt         ?: Date,
+}
 
 export default function ManageOrdersPage() {
   const [orders, setOrders] = useState<IOrder[]>([])
   const [loading, setLoading] = useState(true)
   const router = useRouter()
+
+  useEffect(()=>{
+    const socket = getSocket()
+    socket.on("new-order",(newOrder)=>{
+      setOrders(prev => [newOrder,...prev])
+    })
+    return ()=>{
+      socket.off("new-order")
+    }
+  },[])
 
   useEffect(() => {
     const loadOrders = async () => {
