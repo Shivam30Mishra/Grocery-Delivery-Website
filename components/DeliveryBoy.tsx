@@ -52,6 +52,18 @@ export default function DeliveryBoy() {
     return () => socket.off("new-assignment")
   }, [])
 
+  useEffect(()=>{
+    const socket = getSocket()
+    socket.on("update-deliveryBoy-location",({userId,location})=>{
+      setDeliveryBoyLocation({
+        latitude: location.coordinates[1],
+        longitude: location.coordinates[0]
+      })
+    })
+    return ()=> socket.off("update-deliveryBoy-location")
+  },[])
+
+
   useEffect(() => {
     const socket = getSocket()
     if (!socket || !userData?._id || !navigator.geolocation) return
