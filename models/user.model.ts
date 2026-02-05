@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-interface IUser {
+export interface IUser {
   _id      : mongoose.Types.ObjectId;
   name     : string;
   email    : string;
@@ -18,7 +18,9 @@ interface IUser {
         type: NumberConstructor[];
         default: number[];
     };
-   }
+   },
+   socketId : string | null;
+   isOnline : boolean;
 }
 
 const userSchema = new mongoose.Schema<IUser>({
@@ -38,8 +40,12 @@ const userSchema = new mongoose.Schema<IUser>({
         type    : [Number], // latitude and longitude
         default : [0,0]
       }
-  }
+  },
+  socketId : { type : String, default : null },
+  isOnline : { type : Boolean, default : false }
 },{ timestamps : true }) // createdAt and updatedAt 
+
+userSchema.index({ location: "2dsphere" })
 
 const UserModel = mongoose.models.User || mongoose.model<IUser>("User", userSchema)
 
