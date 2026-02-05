@@ -7,12 +7,53 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import UserOrderCard from "@/components/UserOrderCard";
 import { motion } from "motion/react"
+import { getSocket } from "@/app/lib/socket";
+import { IUser } from "@/models/user.model";
+
+interface IOrder {
+  _id?: any
+  user: any
+  assignment?: any
+  items: {
+    grocery: any
+    name: string
+    price: string
+    unit: string
+    image: string
+    quantity: number
+  }[]
+  assignedDeliveryBoy?: IUser
+  totalAmount: number
+  paymentMethod: "cod" | "online"
+  isPaid: boolean
+  address: {
+    fullName: string
+    mobile: string
+    fullAddress: string
+    city: string
+    state: string
+    pincode: string
+    latitude: number
+    longitude: number
+  }
+  status: "pending" | "out of delivery" | "delivered"
+  createdAt?: Date
+  updatedAt?: Date
+}
 
 export default function MyOrdersPage() {
   const router = useRouter()
 
   const [orders,setOrders]   = useState<IOrder[]>([])
   const [loading,setLoading] = useState(true)
+
+  useEffect(()=>{
+    const socket = getSocket()
+    socket.on("order-assigned",({assignedDeliveryBoy,orderId}:any)=>{
+      console.log(assignedDeliveryBoy,orderId)
+
+    })
+  },[])
 
     useEffect(() => {
         const getMyOrders = async () => {
