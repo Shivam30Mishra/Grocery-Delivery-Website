@@ -1,6 +1,7 @@
 "use client"
 
 import Link from "next/link"
+import { PackageCheck } from "lucide-react"
 import Image from "next/image"
 import { useRouter } from "next/navigation"
 import { useEffect, useRef, useState } from "react"
@@ -168,26 +169,57 @@ export default function Nav({ user }: { user: IUser }) {
               <AnimatePresence>
                 {profileOpen && (
                   <motion.div
-                    initial={{ opacity: 0, y: 6 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: 6 }}
-                    className="absolute right-0 mt-3 w-52 bg-white rounded-xl border shadow-lg"
+                    initial={{ opacity: 0, y: 8, scale: 0.98 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: 8, scale: 0.98 }}
+                    transition={{ duration: 0.18 }}
+                    className="
+        absolute right-0 mt-3 w-56
+        bg-white rounded-2xl
+        border shadow-xl
+        overflow-hidden
+      "
                   >
-                    <div className="px-4 py-3 border-b">
-                      <p className="text-sm font-medium">{user.name}</p>
+                    {/* USER INFO */}
+                    <div className="px-4 py-3 bg-gray-50 border-b">
+                      <p className="text-sm font-semibold text-gray-800">{user.name}</p>
                       <p className="text-xs text-gray-500 capitalize">{user.role}</p>
                     </div>
 
+                    {/* USER ACTIONS */}
+                    {user.role === "user" && (
+                      <Link
+                        href="/user/my-orders"
+                        onClick={() => setProfileOpen(false)}
+                        className="
+            flex items-center gap-3 px-4 py-3
+            text-sm font-medium text-gray-700
+            hover:bg-emerald-50 hover:text-emerald-700
+            transition
+          "
+                      >
+                        <PackageCheck className="w-4 h-4" />
+                        My Orders
+                      </Link>
+                    )}
+
+                    {/* LOGOUT */}
                     <button
                       onClick={() => signOut({ callbackUrl: "/login" })}
-                      className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50"
+                      className="
+          w-full flex items-center gap-3 px-4 py-3
+          text-sm font-medium text-red-600
+          hover:bg-red-50
+          transition
+        "
                     >
                       <LogOut className="w-4 h-4" />
-                      Logout
+                      Log Out
                     </button>
                   </motion.div>
                 )}
               </AnimatePresence>
+
             </div>
           </div>
         </nav>

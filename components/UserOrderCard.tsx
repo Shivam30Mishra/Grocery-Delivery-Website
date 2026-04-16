@@ -8,6 +8,7 @@ import {
   CreditCard,
   UserCheck,
   Truck,
+  CheckCircle,
 } from "lucide-react"
 import { motion, AnimatePresence } from "motion/react"
 import { useRouter } from "next/navigation"
@@ -59,10 +60,7 @@ export default function UserOrderCard({ order }: { order: IOrder }) {
     }
 
     socket.on("order-status-update", handler)
-
-    return () => {
-      socket.off("order-status-update", handler)
-    }
+    return () => socket.off("order-status-update", handler)
   }, [order._id])
 
   const statusMap = {
@@ -71,9 +69,12 @@ export default function UserOrderCard({ order }: { order: IOrder }) {
     delivered: "bg-emerald-100 text-emerald-800",
   }
 
+  const showPaymentInfo =
+    !(status === "delivered" && order.paymentMethod === "cod")
+
   return (
     <motion.div
-      whileHover={{ y: -6 }}
+      whileHover={{ y: -4 }}
       transition={{ type: "spring", stiffness: 220, damping: 22 }}
       className="rounded-3xl bg-white shadow-lg border border-gray-100 overflow-hidden"
     >
@@ -96,12 +97,24 @@ export default function UserOrderCard({ order }: { order: IOrder }) {
           </span>
         </div>
 
+        {/* Payment + Total */}
         <div className="flex justify-between items-center text-sm text-gray-600">
           <span className="flex items-center gap-2">
             <CreditCard size={16} />
-            {order.paymentMethod === "cod"
-              ? "Cash on Delivery"
-              : "Online Payment"}
+            {showPaymentInfo ? (
+              order.paymentMethod === "cod" ? (
+                "Cash on Delivery"
+              ) : order.isPaid ? (
+                "Paid Online"
+              ) : (
+                "Online Payment (Pending)"
+              )
+            ) : (
+              <span className="flex items-center gap-1 text-emerald-700 font-medium">
+                <CheckCircle size={14} />
+                Payment Completed
+              </span>
+            )}
           </span>
 
           <span className="text-base font-bold text-gray-900">
@@ -109,7 +122,7 @@ export default function UserOrderCard({ order }: { order: IOrder }) {
           </span>
         </div>
 
-        {/* Assigned Delivery Boy */}
+        {/* Delivery Partner */}
         {order.assignedDeliveryBoy && (
           <div className="rounded-xl bg-blue-50 p-4 space-y-2">
             <div className="flex items-center gap-2 text-blue-700 font-medium">
@@ -134,26 +147,39 @@ export default function UserOrderCard({ order }: { order: IOrder }) {
                 Call
               </a>
 
-              <button
-                onClick={() =>
-                  router.push(
-                    `/user/track-order/${order._id?.toString()}`
-                  )
-                }
-                className="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-medium bg-emerald-600 text-white hover:bg-emerald-700"
-              >
-                <Truck size={16} />
-                Track Order
-              </button>
+              {status !== "delivered" && (
+                <button
+                  onClick={() =>
+                    router.push(`/user/track-order/${order._id?.toString()}`)
+                  }
+                  className="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-medium bg-emerald-600 text-white hover:bg-emerald-700"
+                >
+                  <Truck size={16} />
+                  Track Order
+                </button>
+              )}
             </div>
           </div>
         )}
 
-        <div className="flex items-start gap-2 text-sm text-gray-500">
-          <MapPin size={16} className="mt-0.5 shrink-0" />
-          <p className="line-clamp-2">{order.address.fullAddress}</p>
+        {/* Address */}
+        <div className="rounded-xl bg-gray-50 p-4 space-y-1 text-sm text-gray-700">
+          <div className="flex items-start gap-2">
+            <MapPin size={16} className="mt-0.5 shrink-0" />
+            <div>
+              <p className="font-medium">{order.address.fullName}</p>
+              <p className="text-gray-600">
+                📞 {order.address.mobile}
+              </p>
+              <p className="text-gray-600">
+                {order.address.fullAddress}, {order.address.city},{" "}
+                {order.address.state} - {order.address.pincode}
+              </p>
+            </div>
+          </div>
         </div>
 
+        {/* Items Toggle */}
         <button
           onClick={() => setOpen(!open)}
           className="w-full flex justify-between items-center text-sm font-medium text-emerald-700 hover:text-emerald-800"
@@ -161,9 +187,7 @@ export default function UserOrderCard({ order }: { order: IOrder }) {
           {open ? "Hide items" : `View ${order.items.length} items`}
           <ChevronDown
             size={18}
-            className={`transition-transform ${
-              open ? "rotate-180" : ""
-            }`}
+            className={`transition-transform ${open ? "rotate-180" : ""}`}
           />
         </button>
       </div>
@@ -172,9 +196,9 @@ export default function UserOrderCard({ order }: { order: IOrder }) {
       <AnimatePresence>
         {open && (
           <motion.div
-            initial={{ opacity: 0, y: -8 }}
+            initial={{ opacity: 0, y: -6 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
+            exit={{ opacity: 0, y: -6 }}
             className="px-6 py-4 bg-gray-50 border-t space-y-3"
           >
             {order.items.map((item, i) => (

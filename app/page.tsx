@@ -7,9 +7,10 @@ import Nav from "@/components/Nav"
 import UserDashboard from "@/components/UserDashboard"
 import AdminDashboard from "@/components/AdminDashboard"
 import DeliveryBoy from "@/components/DeliveryBoy"
+import GeoUpdater from "@/components/GeoUpdater"
 
 export default async function Home() {
-  await connectDB() // ✅ MUST CALL
+  await connectDB()
 
   const session = await auth()
 
@@ -38,6 +39,7 @@ export default async function Home() {
   return (
     <div>
       <Nav user={user} />
+      <GeoUpdater userId={user.id} />
       {user.role === "user" && <UserDashboard />}
       {user.role === "admin" && <AdminDashboard />}
       {user.role === "deliveryBoy" && <DeliveryBoy />}
